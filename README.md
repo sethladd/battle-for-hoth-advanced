@@ -220,6 +220,24 @@ under automated play, a few structural objectives are approximated, and auto-det
 terrain for scenarios 5–17 is sparse — see [`docs/Balance_Report.md`](docs/Balance_Report.md)
 for the full picture and the per-scenario numbers.
 
+## License
+
+This project is **dual-licensed**, and one part is not ours to license at all:
+
+- **Code — BSD 3-Clause.** Everything in `simulator/` (the engine, AI, scenario logic, and
+  build scripts) and the JavaScript/HTML of the tools in `tools/` is licensed under the
+  [BSD 3-Clause License](LICENSE).
+- **Original written & design content — CC BY 4.0.** The original creative work in this
+  project — the rules and design documents in `docs/` (the Advanced Deck Compendium, Advanced
+  Leaders, Advanced Units, and Balance Report), this README, and the new card/leader/unit
+  designs themselves — is licensed under
+  [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-CONTENT.md). You may
+  share and adapt it with attribution.
+- **Not licensed by us:** the publisher materials in `simulator/source/` (the rulebook,
+  scenario book, and card list PDFs/ODT) and the underlying *Star Wars* / *Battle of Hoth*
+  intellectual property remain © & ™ their respective owners (see Attribution). Our CC BY
+  license covers only our original additions, not the game it builds upon.
+
 ## Attribution
 
 Built on *Star Wars: Battle of Hoth* by Richard Borg and Adrien Martinot, © & ™ Lucasfilm
