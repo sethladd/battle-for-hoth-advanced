@@ -3,7 +3,7 @@ import importlib, hoth_cards
 importlib.reload(hoth_cards)
 import hoth_cards as HC
 
-OUT = '/sessions/gracious-admiring-mccarthy/mnt/BattleForHothAdvanced/Advanced_Deck_Compendium.md'
+OUT = '../docs/Advanced_Deck_Compendium.md'
 
 def sector_text(c):
     o = c.get('order', {})

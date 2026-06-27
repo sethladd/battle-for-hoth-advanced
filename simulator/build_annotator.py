@@ -2,8 +2,8 @@
 import pdfplumber, base64, io, json, numpy as np, cv2
 from PIL import Image
 
-PDF = '/sessions/gracious-admiring-mccarthy/mnt/BattleForHothAdvanced/DOWSWB0101_EN_BATTLEOFHOTH_SCENARIO_WEB.pdf'
-OUT = '/sessions/gracious-admiring-mccarthy/mnt/BattleForHothAdvanced/hoth_map_annotator.html'
+PDF = 'source/DOWSWB0101_EN_BATTLEOFHOTH_SCENARIO_WEB.pdf'
+OUT = '../tools/hoth_map_annotator.html'
 
 R = 150
 # Each page is cropped relative to its detected Imperial-cog corner so every board
@@ -286,7 +286,7 @@ function doExport(){const data={_geo:GEO};for(const s in state){data[s]={units:[
  const txt=JSON.stringify(data,null,1);document.getElementById('out').value=txt;
  try{navigator.clipboard.writeText(txt);}catch(e){}
  const blob=new Blob([txt],{type:'application/json'});const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);a.download='hoth_scenario_positions.json';a.click();}
+ a.href=URL.createObjectURL(blob);a.download='../data/hoth_scenario_positions.json';a.click();}
 function doImport(){try{state=JSON.parse(document.getElementById('out').value)&&convertIn(document.getElementById('out').value);save();render();alert('Loaded.');}catch(e){alert('Could not parse: '+e);}}
 function convertIn(txt){const d=JSON.parse(txt);const st={};
  if(d._geo){GEO=d._geo;try{localStorage.setItem('hothgeo2',JSON.stringify(GEO));}catch(e){}}

@@ -4,7 +4,7 @@ import json, importlib, detect_maps
 importlib.reload(detect_maps)
 import detect_maps as D
 
-truth = json.load(open('hoth_scenario_positions.json'))
+truth = json.load(open('../data/hoth_scenario_positions.json'))
 full = {'_note': 'Scenarios 1-4 hand-verified by user; 5-17 auto-detected '
                  '(unit positions/sides reliable; types via template match; '
                  'terrain crystal hexes marked as generic rocks, approximate).'}
@@ -31,5 +31,5 @@ for n in range(5, 18):
     ec = len(units) - rc
     print(f"scn {n:2}: rebel {rc}, empire {ec}, terrain {len(terrain)}")
 
-json.dump(full, open('hoth_scenario_positions_full.json', 'w'), indent=1)
+json.dump(full, open('../data/hoth_scenario_positions_full.json', 'w'), indent=1)
 print('wrote hoth_scenario_positions_full.json')

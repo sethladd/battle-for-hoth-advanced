@@ -9,9 +9,9 @@ SCN = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 SEED = int(sys.argv[2]) if len(sys.argv) > 2 else 7
 RLEAD = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None
 ELEAD = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != '-' else None
-OUT = '/sessions/gracious-admiring-mccarthy/mnt/BattleForHothAdvanced/hoth_game_replay.html'
+OUT = '../tools/hoth_game_replay.html'
 
-POS = json.load(open('hoth_scenario_positions.json'))
+POS = json.load(open('../data/hoth_scenario_positions.json'))
 annot = POS.get(str(SCN))
 scn = HS.SCENARIOS[SCN]
 res = S.play_game(seed=SEED, basic=False, scenario=scn, annot=annot,
