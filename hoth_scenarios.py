@@ -227,6 +227,15 @@ def apply_markers(game, scn, markers):
     val = 2 if scn.num == 5 else 1
     for m in markers:
         hx = (m['col'], 6 - m['row'])
+        if m['type'].startswith('leader_'):
+            from hoth_engine import LEADER_DEF
+            name = m['type'].split('_', 1)[1].capitalize()
+            u = game.unit_at(hx)
+            if u is not None and name in LEADER_DEF:
+                u.leader = name
+                if LEADER_DEF[name].get('extra_fig'):
+                    u.figs += LEADER_DEF[name]['extra_fig']
+            continue
         if m['type'] == 'objective':
             owner = 'empire' if scn.num == 7 else 'rebel'
             mode = 'perm' if scn.num in (7,) else 'temp'

@@ -7,12 +7,15 @@ import hoth_sim as S, hoth_scenarios as HS
 
 SCN = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 SEED = int(sys.argv[2]) if len(sys.argv) > 2 else 7
+RLEAD = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None
+ELEAD = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != '-' else None
 OUT = '/sessions/gracious-admiring-mccarthy/mnt/BattleForHothAdvanced/hoth_game_replay.html'
 
 POS = json.load(open('hoth_scenario_positions.json'))
 annot = POS.get(str(SCN))
 scn = HS.SCENARIOS[SCN]
-res = S.play_game(seed=SEED, basic=False, scenario=scn, annot=annot, record=True)
+res = S.play_game(seed=SEED, basic=False, scenario=scn, annot=annot,
+                  rebel_leader=RLEAD, emp_leader=ELEAD, record=True)
 
 CARD_TEXT = {
  # section cards (shared)
@@ -205,6 +208,11 @@ function draw(){
    t.setAttribute('font-size','13');t.setAttribute('font-weight','bold');t.setAttribute('fill','#fff');t.textContent=UK[u.kind];bd.appendChild(t);
    const n=document.createElementNS(NS,'text');n.setAttribute('x',x);n.setAttribute('y',y+12);n.setAttribute('text-anchor','middle');
    n.setAttribute('font-size','11');n.setAttribute('fill','#ffe');n.textContent='x'+u.figs;bd.appendChild(n);
+   if(u.leader){const ring=document.createElementNS(NS,'circle');ring.setAttribute('cx',x);ring.setAttribute('cy',y);
+     ring.setAttribute('r',23);ring.setAttribute('fill','none');ring.setAttribute('stroke','#ffd700');ring.setAttribute('stroke-width','3');bd.appendChild(ring);
+     const lt=document.createElementNS(NS,'text');lt.setAttribute('x',x);lt.setAttribute('y',y-20);lt.setAttribute('text-anchor','middle');
+     lt.setAttribute('font-size','12');lt.setAttribute('font-weight','bold');lt.setAttribute('fill','#ffd700');lt.setAttribute('stroke','#000');lt.setAttribute('stroke-width','.5');
+     lt.textContent='★'+u.leader;bd.appendChild(lt);}
  });
  // hit / miss / KO markers drawn ON TOP of units so they're clearly visible
  (f.events||[]).forEach(e=>{

@@ -82,6 +82,11 @@ const PALETTE=[
  {k:'ioncannon',lay:'mark',c:'#ef476f',t:'Ion Cannon'},
  {k:'objective',lay:'mark',c:'#ffd166',t:'Objective / medal hex'},
  {k:'exit',     lay:'mark',c:'#00b4d8',t:'Exit hex'},
+ {k:'leader_luke', lay:'mark',c:'#ffd700',t:'★ Leader: Luke (on this unit)'},
+ {k:'leader_han',  lay:'mark',c:'#ffd700',t:'★ Leader: Han (on this unit)'},
+ {k:'leader_leia', lay:'mark',c:'#ffd700',t:'★ Leader: Leia (on this unit)'},
+ {k:'leader_vader',lay:'mark',c:'#ff4d4d',t:'★ Leader: Vader (on this unit)'},
+ {k:'leader_veers',lay:'mark',c:'#ff4d4d',t:'★ Leader: Veers (on this unit)'},
 ];
 let cur='1', brush=PALETTE[0];
 let calib=null;
@@ -158,9 +163,15 @@ function render(){
      h.setAttribute('r',GEO.dx/2.3);h.setAttribute('fill',it.c);h.setAttribute('fill-opacity','.35');
      h.setAttribute('stroke',it.c);h.setAttribute('stroke-width','2');h.style.pointerEvents='none';ov.appendChild(h);}
    if(cell.mark){const it=PALETTE.find(p=>p.k==cell.mark);
-     const m=document.createElementNS(NS,'rect');m.setAttribute('x',x-10);m.setAttribute('y',y-10);
-     m.setAttribute('width',20);m.setAttribute('height',20);m.setAttribute('fill','none');
-     m.setAttribute('stroke',it.c);m.setAttribute('stroke-width','3');m.style.pointerEvents='none';ov.appendChild(m);}
+     const lead=cell.mark.indexOf('leader_')==0;
+     const m=document.createElementNS(NS,'rect');m.setAttribute('x',x-16);m.setAttribute('y',y-16);
+     m.setAttribute('width',32);m.setAttribute('height',32);m.setAttribute('fill','none');
+     m.setAttribute('stroke',it.c);m.setAttribute('stroke-width','3');m.setAttribute('rx',lead?16:3);m.style.pointerEvents='none';ov.appendChild(m);
+     const lbl={objective:'OBJ',exit:'EXIT',shieldgen:'SHLD',ioncannon:'ION',
+       leader_luke:'★L',leader_han:'★H',leader_leia:'★Le',leader_vader:'★V',leader_veers:'★Ve'}[cell.mark]||'';
+     if(lbl){const t=document.createElementNS(NS,'text');t.setAttribute('x',x);t.setAttribute('y',y-19);
+       t.setAttribute('text-anchor','middle');t.setAttribute('font-size','13');t.setAttribute('font-weight','bold');
+       t.setAttribute('fill',it.c);t.setAttribute('stroke','#000');t.setAttribute('stroke-width','.5');t.style.pointerEvents='none';t.textContent=lbl;ov.appendChild(t);}}
    if(cell.unit){const it=PALETTE.find(p=>p.k==cell.unit.k);
      const u=document.createElementNS(NS,'circle');u.setAttribute('cx',x);u.setAttribute('cy',y);
      u.setAttribute('r',13);u.setAttribute('fill',it.c);u.setAttribute('stroke','#fff');u.setAttribute('stroke-width','2');
@@ -205,7 +216,7 @@ function doExport(){const data={_geo:GEO};for(const s in state){data[s]={units:[
 function doImport(){try{state=JSON.parse(document.getElementById('out').value)&&convertIn(document.getElementById('out').value);save();render();alert('Loaded.');}catch(e){alert('Could not parse: '+e);}}
 function convertIn(txt){const d=JSON.parse(txt);const st={};
  if(d._geo){GEO=d._geo;try{localStorage.setItem('hothgeo2',JSON.stringify(GEO));}catch(e){}}
- for(const s in d){if(s==='_geo')continue;st[s]={};const o=d[s];
+ for(const s in d){if(!/^[0-9]+$/.test(s))continue;st[s]={};const o=d[s];
    (o.units||[]).forEach(u=>{const k=u.col+','+u.row;st[s][k]=st[s][k]||{};st[s][k].unit={k:u.kind,side:u.side};});
    (o.terrain||[]).forEach(u=>{const k=u.col+','+u.row;st[s][k]=st[s][k]||{};st[s][k].terr=u.type;});
    (o.markers||[]).forEach(u=>{const k=u.col+','+u.row;st[s][k]=st[s][k]||{};st[s][k].mark=u.type;});}

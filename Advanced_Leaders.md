@@ -57,11 +57,10 @@ weaker, safer game (they then function as in the basic rules).
   escort (escort attacks +1 die, close combat only).
 
 ### Han Solo — on a **Tauntaun** (scout cavalry)
-- **Mini / escort:** a new single-figure **Tauntaun rider** unit. Move 0–4 (fast), may
-  ignore the first terrain "must stop" each turn, attack **2 dice, close combat only**.
-  *(No tauntaun mini in the box — proxy with any rider figure.)*
-- **Scoundrel:** after attacking, Han may **move 1–2 hexes** (hit-and-run), and may
-  **reroll one die** once per turn (Scoundrel's Luck).
+- **Mini / escort:** the **Tauntaun Scout** unit (see Advanced Units). Fast, all-terrain,
+  inherent hit-and-run. *(No tauntaun mini in the box — proxy with any rider figure.)*
+- **Scoundrel:** the unit with Han rolls **+1 attack die** and may **reroll one die**
+  (Scoundrel's Luck), on top of the tauntaun's own hit-and-run.
 - **Aura (1 hex):** adjacent friendly units gain **+1 movement**.
 - **Cards:** Never Tell Me the Odds, Surprise Attack, Covering Fire.
 - **Bonus Medal: 1.** If the tauntaun is killed, Han joins an adjacent unit on foot; if
@@ -71,9 +70,9 @@ weaker, safer game (they then function as in the basic rules).
 - **Mini / escort:** joins an **Echo Base trooper** unit, adding a **4th figure** (a
   command squad of 4 instead of 3).
 - **Command:** the squad with Leia rolls **+1 attack die**; if it does not attack, it may
-  **return 1 lost figure** (rally), up to its 4-figure cap.
-- **Aura (2 hexes):** friendly units within 2 hexes roll +1 die when attacking
-  (Command Network). *(This replaces Leia's basic "first ordered unit +1 die" passive.)*
+  **return 1 lost figure** (rally), up to its 4-figure cap. Her leadership is focused on her
+  own command squad — a tough, self-sustaining elite unit rather than an army-wide buff
+  *(the wide aura was removed in balancing; see below)*.
 - **Cards:** Coordinated Defense, New Hope, Deploy the Fleet.
 - **Bonus Medal: 2.** A high-value capture target; screen her well.
 
@@ -132,3 +131,21 @@ weaker, safer game (they then function as in the basic rules).
 These rules keep everything inside the existing system — same hexes, same dice, same
 command cards, same medals — while making each leader a character you maneuver, protect,
 and hunt.
+
+## Balance (simulated)
+
+A balance pass was run in the simulator on a symmetric "arena" (identical forces both
+sides, an escort for every leader type) so each leader's effect could be isolated against
+the no-leader baseline. Findings and the tuning applied:
+
+- **Leia and Luke were too strong** — Luke's "reroll" was rerolling *every* missed die, and
+  Leia's +1-die aura blanketed the army. Fixed: leader rerolls now reroll **one** die (as
+  written), and Leia's wide aura was removed (she empowers her own command squad instead).
+- **Han was a *negative* leader** (his fragile tauntaun got captured for a bonus medal and
+  his bonus was weak). Fixed: Han's escort now also rolls **+1 die**.
+- After tuning, the full leader-vs-leader matrix sits in roughly the **41–61% band** (a few
+  matchups to ~30/67 at small sample sizes), with the three Empire leaders tightly clustered
+  and every leader a net positive. Bonus-Medal values (2 for Luke/Leia/Vader, 1 for
+  Han/Veers, 0 for off-board Piett) and aura ranges are the tuning levers and are easy to
+  revisit. Note the AI under-uses mobility, so Han's true value is higher at the table than
+  the simulation credits.

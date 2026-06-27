@@ -26,6 +26,40 @@ AI_MODE = {'rebel': 'base', 'empire': 'base'}
 BASE_JITTER = 0.10     # randomness in card choice; lower = more consistently optimal
 
 
+def leader_attack_mods(game, attacker):
+    """Combat bonuses on `attacker` from its own leader, friendly auras, and enemy Fear."""
+    from hoth_engine import LEADER_DEF
+    m = dict(dice=0, close_dice=0, reroll_one=False, retreat_as_hit=False, ignore_terrain=False)
+    if attacker.leader:
+        cb = LEADER_DEF[attacker.leader].get('combat', {})
+        m['dice'] += cb.get('dice', 0); m['close_dice'] += cb.get('close_dice', 0)
+        m['reroll_one'] = m['reroll_one'] or cb.get('reroll', False)
+        m['retreat_as_hit'] = m['retreat_as_hit'] or cb.get('retreat_as_hit', False)
+        m['ignore_terrain'] = m['ignore_terrain'] or cb.get('ignore_terrain', False)
+    for u in game.units:
+        if not u.alive or not u.leader:
+            continue
+        a = LEADER_DEF[u.leader].get('aura', {})
+        if u.side == attacker.side and a.get('type') == 'dice' and u.uid != attacker.uid:
+            if hex_distance(u.pos, attacker.pos) <= a['range']:
+                m['dice'] += a.get('amount', 0)
+        if u.side != attacker.side and a.get('type') == 'fear':
+            if hex_distance(u.pos, attacker.pos) <= a['range']:
+                m['dice'] -= 1
+    return m
+
+def leader_move_bonus(game, unit):
+    """Extra movement granted by a friendly leader's aura (e.g. Han)."""
+    from hoth_engine import LEADER_DEF
+    best = 0
+    for u in game.units:
+        if not u.alive or not u.leader or u.side != unit.side or u.uid == unit.uid:
+            continue
+        a = LEADER_DEF[u.leader].get('aura', {})
+        if a.get('type') == 'move' and hex_distance(u.pos, unit.pos) <= a['range']:
+            best = max(best, a.get('amount', 0))
+    return best
+
 def threat_at(game, unit, pos):
     """Expected hits the enemy could land on `unit` if it sits on `pos` next turn
     (any enemy that could move-and-attack into range). Used for self-preservation."""
@@ -319,6 +353,9 @@ def execute_card(game, side, card, states):
             ubonus['close_dice'] = ubonus.get('close_dice', 0) + 1
         if u.utype.after_attack_move:   # cavalry inherent hit-and-run
             ubonus['after_move'] = max(ubonus.get('after_move', 0), u.utype.after_attack_move)
+        amb = leader_move_bonus(game, u)   # Han's aura grants +movement nearby
+        if amb:
+            ubonus['move'] = ubonus.get('move', 0) + amb
         p = plan_unit_action(game, u, ubonus, hit_targets, smart=smart)
         plans.append((u, ubonus, p))
 
@@ -460,21 +497,24 @@ def _do_attack(game, attacker, target, bonus, hit_targets, states):
     elif bonus.get('focus') == 'escalate' and hit_targets.get(target.uid):
         focus_extra = 1 if hit_targets[target.uid] == 1 else 2
 
-    extra = (bonus.get('dice', 0) + focus_extra - cover_pen
+    lm = leader_attack_mods(game, attacker)   # on-board leader: escort bonus, aura, fear
+    extra = (bonus.get('dice', 0) + focus_extra - cover_pen + lm['dice']
              + escalation_dice(game, attacker.side, bonus))
-    close_bonus = bonus.get('close_dice', 0)
+    close_bonus = bonus.get('close_dice', 0) + lm['close_dice']
     twice = 2 if bonus.get('attack_twice') else 1
     apass = states[attacker.side].get('passive')
-    reroll = bonus.get('reroll', False)
-    if apass == 'the_force':
-        reroll = True  # approximate: Luke rerolls (one die) -> reroll misses lite
+    reroll_all = bonus.get('reroll', False)              # one-shot card: reroll all misses
+    reroll_one = lm['reroll_one'] or apass == 'the_force'  # leader/passive: reroll one die
+    ignore_terr = bonus.get('ignore_terrain', False) or lm['ignore_terrain']
+    rah = bonus.get('retreat_as_hit', False) or lm['retreat_as_hit']
     for _ in range(twice):
         if not target.alive:
             break
         game.resolve_attack(attacker, target, extra_dice=extra,
-                            ignore_terrain=bonus.get('ignore_terrain', False),
+                            ignore_terrain=ignore_terr,
                             close_only_bonus=close_bonus,
-                            reroll_misses=reroll)
+                            reroll_misses=reroll_all, reroll_one=reroll_one,
+                            retreat_as_hit=rah)
         # Vader fear: extra retreat handled crudely as small extra push already covered
 
 def _retreat_to_safety(game, u, dist):
@@ -653,7 +693,8 @@ def draw_cards(state, n):
             state['hand'].append(state['deck'].pop())
 
 def _snapshot(game):
-    return [dict(kind=u.kind, side=u.side, col=u.pos[0], row=u.pos[1], figs=u.figs)
+    return [dict(kind=u.kind, side=u.side, col=u.pos[0], row=u.pos[1], figs=u.figs,
+                 leader=u.leader)
             for u in game.units if u.alive]
 
 def _record_frame(game, side, card_name, hands=None):
@@ -701,6 +742,23 @@ def take_turn(game, side, states):
 def make_unit(kind, side, pos, badge=None):
     ut = UNIT_TYPES[kind]
     return Unit(ut, side, pos, ut.full, badge=badge)
+
+def attach_leaders(game, leaders):
+    """Place each side's leader figure with an eligible escort unit (Piett stays off-board)."""
+    from hoth_engine import LEADER_DEF
+    for side, name in (leaders or {}).items():
+        if not name:
+            continue
+        ld = LEADER_DEF.get(name)
+        if not ld or ld.get('offboard'):
+            continue
+        cand = [u for u in game.side_units(side) if u.kind == ld['escort'] and not u.leader]
+        if not cand:
+            cand = [u for u in game.side_units(side) if not u.leader]
+        if cand:
+            cand[0].leader = name
+            if ld.get('extra_fig'):
+                cand[0].figs += ld['extra_fig']
 
 def build_terrain():
     """Scenario 1 'Imperial Scout Mission' terrain: a central diagonal band of
@@ -777,6 +835,8 @@ def play_game(rebel_leader=None, emp_leader=None, basic=False,
         return st
     states = {'rebel': mkstate('rebel', rebel_leader),
               'empire': mkstate('empire', emp_leader)}
+    # place leader figures on-board (Advanced Leader rules); off-board leaders skipped
+    attach_leaders(game, {'rebel': rebel_leader, 'empire': emp_leader})
     # piett +1 hand / han +1 hand
     for side in ('rebel', 'empire'):
         hs = hand_size[side]

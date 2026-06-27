@@ -149,6 +149,28 @@ UNIT_TYPES = {
     # AT-ST scout walker (Imperial medium armor): between the Snowspeeder and the AT-AT.
     # Inspired by the Memoir '44 tank (3/3/3, mobile) but lighter to fit Hoth's scale.
     'atst':      UnitType('atst', 'vehicle', 2, 2, 2, {1: 3, 2: 3, 3: 2}),
+    # lone Darth Vader figure (after his escort is destroyed but he survives)
+    'vader':     UnitType('vader', 'infantry', 1, 1, 1, {1: 3, 2: 1}),
+}
+
+# --- Advanced Leader definitions (on-board characters) ---
+# escort: eligible escort unit kind.  combat: bonus applied to the escort's attacks.
+# aura: {range, type, amount} applied to nearby friendly units (or 'fear' to enemies).
+# bonus_medal: medals the opponent scores if the leader is captured/killed.
+LEADER_DEF = {
+    'Luke':  dict(side='rebel', escort='speeder', combat=dict(dice=1, reroll=True),
+                  ignore_retreat_self=1, aura=dict(range=1, type='ignore_retreat'),
+                  bonus_medal=2),
+    'Han':   dict(side='rebel', escort='tauntaun', combat=dict(dice=1, reroll=True),
+                  aura=dict(range=1, type='move', amount=1), bonus_medal=1),
+    'Leia':  dict(side='rebel', escort='echo', combat=dict(dice=1), extra_fig=1, rally=True,
+                  aura=dict(range=1, type='none'), bonus_medal=2),
+    'Vader': dict(side='empire', escort='snowtroop',
+                  combat=dict(close_dice=2, retreat_as_hit=True, ignore_terrain=True),
+                  aura=dict(range=1, type='fear'), bonus_medal=2, immortal=True),
+    'Veers': dict(side='empire', escort='atat', combat=dict(dice=1),
+                  aura=dict(range=2, type='dice', amount=0), bonus_medal=1),
+    'Piett': dict(side='empire', offboard=True, bonus_medal=0),
 }
 
 @dataclass
@@ -160,6 +182,7 @@ class Unit:
     badge: str = None    # special-forces badge: 'assault','eweb','scout','elite', etc.
     eweb_inplace: bool = True
     uid: int = 0
+    leader: str = None   # name of the leader character riding with this unit
 
     @property
     def kind(self):
@@ -235,7 +258,8 @@ class Game:
         self.exit_medal = {}
 
     def snapshot(self):
-        return [dict(kind=u.kind, side=u.side, col=u.pos[0], row=u.pos[1], figs=u.figs)
+        return [dict(kind=u.kind, side=u.side, col=u.pos[0], row=u.pos[1], figs=u.figs,
+                     leader=u.leader)
                 for u in self.units if u.alive]
 
     def emit_substep(self, phase):
@@ -420,14 +444,23 @@ class Game:
         return max(0, dice)
 
     def resolve_attack(self, attacker, target, extra_dice=0, ignore_terrain=False,
-                       close_only_bonus=0, reroll_misses=False):
+                       close_only_bonus=0, reroll_misses=False, retreat_as_hit=False,
+                       reroll_one=False):
         n = self.attack_dice(attacker, target, extra_dice, ignore_terrain, close_only_bonus)
         if n is None:
             return False
         faces = roll(n, self.rng)
-        if reroll_misses:
+        if reroll_misses:                       # reroll ALL misses (a one-shot card)
             faces = [f if f != 'miss' else self.rng.choice(FACES) for f in faces]
+        elif reroll_one:                        # reroll a single die (the Force, passive)
+            for i, f in enumerate(faces):
+                if f == 'miss':
+                    faces[i] = self.rng.choice(FACES)
+                    break
         hits, retreats = count_hits(faces, target.category)
+        if retreat_as_hit and retreats:     # Force Push / Vader: retreats become hits
+            hits += retreats
+            retreats = 0
         if self.recording:
             self.log.append({'type': 'attack', 'from': list(attacker.pos), 'to': list(target.pos),
                              'atk_kind': attacker.kind, 'tgt_kind': target.kind,
@@ -455,7 +488,9 @@ class Game:
                 return True
 
         self.emit_substep('Fire')
-        # retreats
+        # retreats (leaders may let the target ignore some)
+        if retreats > 0 and not target.utype.ignore_retreat and target.alive:
+            retreats = max(0, retreats - self.retreat_ignore(target))
         if retreats > 0 and not target.utype.ignore_retreat and target.alive:
             self._apply_retreat(attacker.side, target, retreats)
             self.emit_substep('Retreat')
@@ -506,6 +541,20 @@ class Game:
             return 0
         return 1 if unit.utype.grants_medal else 0
 
+    def retreat_ignore(self, target):
+        """How many retreats `target` may ignore thanks to a leader (self or aura)."""
+        ig = 0
+        if target.leader:
+            ig += LEADER_DEF[target.leader].get('ignore_retreat_self', 0)
+        for u in self.units:
+            if u.alive and u.side == target.side and u.leader:
+                a = LEADER_DEF[u.leader].get('aura', {})
+                if a.get('type') == 'ignore_retreat' and u.uid != target.uid:
+                    if hex_distance(u.pos, target.pos) <= a['range']:
+                        ig += 1
+                        break
+        return ig
+
     def _eliminate(self, by_side, unit):
         unit.figs = 0
         mv = self.medal_value(unit, by_side)
@@ -513,3 +562,31 @@ class Game:
         if self.recording:
             self.log.append({'type': 'eliminate', 'pos': list(unit.pos),
                              'kind': unit.kind, 'side': unit.side, 'by': by_side, 'medal': mv})
+        if unit.leader:
+            self._handle_leader_loss(by_side, unit)
+
+    def _handle_leader_loss(self, by_side, unit):
+        name = unit.leader
+        unit.leader = None
+        ldef = LEADER_DEF[name]
+        # try to escape to an adjacent friendly unit
+        for nb in neighbors(*unit.pos):
+            f = self.unit_at(nb)
+            if f and f.alive and f.side == unit.side and not f.leader:
+                f.leader = name
+                if self.recording:
+                    self.log.append({'type': 'leader_escape', 'name': name, 'to': list(f.pos)})
+                return
+        if ldef.get('immortal'):           # Vader survives as a lone Sith figure
+            lone = Unit(UNIT_TYPES['vader'], unit.side, unit.pos, 1)
+            lone.uid = len(self.units)
+            self.units.append(lone)
+            self.kill_bonus[('vader', by_side)] = ldef['bonus_medal']
+            if self.recording:
+                self.log.append({'type': 'leader_survive', 'name': name, 'pos': list(unit.pos)})
+            return
+        # captured / killed -> opponent scores the bonus medal
+        self.medals[by_side] += ldef['bonus_medal']
+        if self.recording:
+            self.log.append({'type': 'leader_captured', 'name': name, 'by': by_side,
+                             'medal': ldef['bonus_medal']})
