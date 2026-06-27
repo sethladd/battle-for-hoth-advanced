@@ -129,6 +129,7 @@ class UnitType:
     confirmation: bool = False   # AT-AT special death rule
     ignore_terrain_stop: bool = False   # cavalry: not forced to stop on rough terrain
     after_attack_move: int = 0          # inherent hit-and-run / overrun distance
+    is_structure: bool = False          # shield generator / ion cannon (destroyed on a blast)
 
 # Inferred / rulebook-derived stat block (see report for sourcing)
 UNIT_TYPES = {
@@ -151,6 +152,11 @@ UNIT_TYPES = {
     'atst':      UnitType('atst', 'vehicle', 2, 2, 2, {1: 3, 2: 3, 3: 2}),
     # lone Darth Vader figure (after his escort is destroyed but he survives)
     'vader':     UnitType('vader', 'infantry', 1, 1, 1, {1: 3, 2: 1}),
+    # structures: special, immobile, no attack, hit only on a blast (1 hit destroys them)
+    'shieldgen': UnitType('shieldgen', 'special', 1, 0, 0, {}, grants_medal=False,
+                          is_structure=True, ignore_retreat=True, no_terrain_protection=True),
+    'ioncannon': UnitType('ioncannon', 'special', 1, 0, 0, {}, grants_medal=False,
+                          is_structure=True, ignore_retreat=True, no_terrain_protection=True),
 }
 
 # --- Advanced Leader definitions (on-board characters) ---
@@ -169,7 +175,7 @@ LEADER_DEF = {
                   combat=dict(close_dice=2, retreat_as_hit=True, ignore_terrain=True),
                   aura=dict(range=1, type='fear'), bonus_medal=2, immortal=True),
     'Veers': dict(side='empire', escort='atat', combat=dict(dice=1),
-                  aura=dict(range=2, type='dice', amount=0), bonus_medal=1),
+                  aura=dict(range=99, type='vehicle_close'), bonus_medal=1),
     'Piett': dict(side='empire', offboard=True, bonus_medal=0),
 }
 

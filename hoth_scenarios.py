@@ -241,9 +241,15 @@ def apply_markers(game, scn, markers):
             mode = 'perm' if scn.num in (7,) else 'temp'
             game.objectives.append(dict(hex=hx, value=val, mode=mode, side=owner))
         elif m['type'] in ('shieldgen', 'ioncannon'):
-            game.terrain[hx] = 'structure'
+            if not any(u.kind == m['type'] and u.pos == hx for u in game.units):
+                add_structure(game, hx, m['type'])
         elif m['type'] == 'exit':
             pass  # exit handled by baseline exit_medal rule
+    # if the annotator placed structures, ensure the matching sudden-death exists
+    for kind in ('shieldgen', 'ioncannon'):
+        if any(u.kind == kind for u in game.units) and not getattr(game, '_sd_' + kind, False):
+            add_structure_sudden_death(game, kind, 'empire')
+            setattr(game, '_sd_' + kind, True)
 
 
 def apply_rules(game, scn):
@@ -275,3 +281,32 @@ def apply_rules(game, scn):
                        if u.side == 'rebel' and u.category == 'infantry' and not u.alive)
             return 'empire' if lost >= 4 else None
         game.sudden_death_checks.append(chk_kill4)
+
+    # structural objectives (default placements; the annotator can override via markers)
+    if scn.num == 10:                       # Target the Shield Generators
+        add_structure(game, (2, 1), 'shieldgen')
+        add_structure(game, (7, 1), 'shieldgen')
+        add_structure_sudden_death(game, 'shieldgen', 'empire')
+    if scn.num == 14:                       # Protect Rebel Transports (ion cannon)
+        add_structure(game, (5, 1), 'ioncannon')
+        add_structure_sudden_death(game, 'ioncannon', 'empire')
+        game.ion = {'side': 'rebel', 'cap': 3, 'charge': 0}   # Rebel charges it for medals
+    if scn.num == 13:                       # also a sudden-death already handled above
+        pass
+
+
+def add_structure(game, hx, kind, defender='rebel'):
+    from hoth_engine import Unit, UNIT_TYPES
+    u = Unit(UNIT_TYPES[kind], defender, hx, 1)
+    u.uid = len(game.units)
+    game.units.append(u)
+    game.terrain[hx] = 'structure'
+
+def add_structure_sudden_death(game, kind, attacker):
+    """`attacker` wins immediately once every structure of `kind` is destroyed."""
+    def chk(g):
+        present = [u for u in g.units if u.kind == kind]
+        if present and not any(u.alive for u in present):
+            return attacker
+        return None
+    game.sudden_death_checks.append(chk)

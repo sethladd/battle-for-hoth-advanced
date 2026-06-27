@@ -115,11 +115,20 @@ weaker, safer game (they then function as in the basic rules).
 
 ---
 
-## Setup, scenarios, and balance
+## Choosing and deploying a leader
 
-- **Setup:** after deploying forces, each player places their leader figure with an
-  eligible friendly unit (Piett stays off-board). The map annotator can mark the leader's
-  starting unit so the simulator places it.
+- **Open selection.** During setup each player chooses **one** leader from their faction,
+  and choices are **open** — both players know who the other has fielded (no hidden picks).
+- **Escort lock.** A leader is **locked to its escort type** and can only be chosen if a unit
+  of that type is in the scenario: Luke needs a Snowspeeder, Han a Tauntaun Scout, Leia an
+  Echo Base trooper, Vader a Snowtrooper, Veers an AT-AT. **If the escort type is not in the
+  scenario, that leader cannot be brought to the battle at all** (no figure, no cards, no
+  passive). **Piett** is the exception — off-board, always available.
+- **Deploy.** After forces are placed per the scenario map, set the leader figure on one of
+  your already-deployed units of its escort type (Leia adds her 4th figure then). The map
+  annotator's ★ Leader brushes mark the exact escort unit; the simulator deploys it there.
+
+## Scenarios and balance
 - **Victory:** Bonus Medals from killing a leader count toward the scenario's victory
   total, so a scenario that wins at 4 medals can be decided by a single bold decapitation
   strike — exciting, but swingy, which is why the values are 1–2 and escape is usually

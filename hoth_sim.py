@@ -43,6 +43,9 @@ def leader_attack_mods(game, attacker):
         if u.side == attacker.side and a.get('type') == 'dice' and u.uid != attacker.uid:
             if hex_distance(u.pos, attacker.pos) <= a['range']:
                 m['dice'] += a.get('amount', 0)
+        if u.side == attacker.side and a.get('type') == 'vehicle_close' and attacker.category == 'vehicle':
+            if hex_distance(u.pos, attacker.pos) <= a['range']:    # Veers: friendly walkers +1 close die
+                m['close_dice'] += 1
         if u.side != attacker.side and a.get('type') == 'fear':
             if hex_distance(u.pos, attacker.pos) <= a['range']:
                 m['dice'] -= 1
@@ -68,6 +71,8 @@ def threat_at(game, unit, pos):
     for e in game.enemies_of(unit.side):
         if not e.alive:
             continue
+        if not e.utype.attack:
+            continue
         rng = e.utype.move_attack + max(e.utype.attack.keys())
         if hex_distance(e.pos, pos) <= rng:
             t += max(e.utype.attack.values()) * p
@@ -86,23 +91,35 @@ def risk_penalty(game, unit, pos):
 # --------------------------------------------------------------------------
 # value estimation
 # --------------------------------------------------------------------------
+def scout_bonus(game, attacker, target, bonus):
+    """+1 die if a Probe Recon scout card is active and a friendly droid sees the target."""
+    if not bonus.get('scout'):
+        return 0
+    for u in game.side_units(attacker.side):
+        if u.kind == 'droid' and game.has_los(u.pos, target.pos):
+            return 1
+    return 0
+
 def est_attack_value(game, attacker, target, bonus, dist_override=None,
                      focus_extra=0):
     from hoth_engine import hex_distance
+    close = hex_distance(attacker.pos, target.pos) == 1
+    lm = leader_attack_mods(game, attacker)       # AI now values leader escort/aura/fear
     n = game.attack_dice(
         attacker, target,
-        extra_dice=bonus.get('dice', 0) + focus_extra
-                   + (bonus.get('close_dice', 0) if hex_distance(attacker.pos, target.pos) == 1 else 0)
+        extra_dice=bonus.get('dice', 0) + focus_extra + lm['dice']
+                   + scout_bonus(game, attacker, target, bonus)
+                   + ((bonus.get('close_dice', 0) + lm['close_dice']) if close else 0)
                    + escalation_dice(game, attacker.side, bonus),
-        ignore_terrain=bonus.get('ignore_terrain', False),
+        ignore_terrain=bonus.get('ignore_terrain', False) or lm['ignore_terrain'],
     )
     if n is None:
         return 0.0
     twice = 2 if bonus.get('attack_twice') else 1
     p = PHIT[target.category]
-    if bonus.get('reroll'):
-        p = p + (1 - p) * p          # one reroll of misses
-    if bonus.get('retreat_as_hit'):
+    if bonus.get('reroll') or lm['reroll_one']:
+        p = p + (1 - p) * p          # reroll lifts hit probability
+    if bonus.get('retreat_as_hit') or lm['retreat_as_hit']:
         p = min(1.0, p + PRET)
     exp_hits = n * p * twice
     figs_removed = min(exp_hits, target.figs)
@@ -113,6 +130,9 @@ def est_attack_value(game, attacker, target, bonus, dist_override=None,
         p_kill = min(0.95, p_kill)
         medal = MEDAL_W * p_kill
         figs_removed = 0
+    elif target.utype.is_structure:         # destroying a structure is a win condition
+        p_kill = 1 - (1 - PRET) ** max(1, n)     # destroyed on any blast among n dice
+        return MEDAL_W * 3 * p_kill
     else:
         p_kill = 1.0 if exp_hits >= target.figs else exp_hits / max(1, target.figs)
         mv = game.medal_value(target, attacker.side)
@@ -224,8 +244,8 @@ def plan_unit_action(game, unit, bonus, hit_targets, smart=True):
         if smart:
             s -= risk_penalty(game, unit, pos)   # threat-aware self-preservation
         else:
-            exp = sum(1 for e in enemies
-                      if hex_distance(pos, e.pos) <= max(e.utype.attack.keys()))
+            exp = sum(1 for e in enemies if e.utype.attack
+                      and hex_distance(pos, e.pos) <= max(e.utype.attack.keys()))
             s -= 0.4 * exp
         return s
     best_pos = max(reach.keys(), key=hex_score)
@@ -236,7 +256,7 @@ def plan_unit_action(game, unit, bonus, hit_targets, smart=True):
 # ordering scope
 # --------------------------------------------------------------------------
 def eligible_units(game, side, order):
-    units = game.side_units(side)
+    units = [u for u in game.side_units(side) if not u.utype.is_structure]
     filt = order.get('filter')
     if filt:
         units = [u for u in units if u.category == filt]
@@ -342,15 +362,10 @@ def execute_card(game, side, card, states):
     # plan: first move all, then attack all (rules sequence), tracking focus
     hit_targets = {}
     plans = []
-    # command_network: give first ordered unit +1 die
-    first_bonus_used = False
+    # Leader combat/aura effects are single-sourced in LEADER_DEF (applied in _do_attack);
+    # only the per-unit movement aura and inherent cavalry move are merged here.
     for u in ordered:
         ubonus = dict(bonus)
-        if passive == 'command_network' and not first_bonus_used:
-            ubonus['dice'] = ubonus.get('dice', 0) + 1
-            first_bonus_used = True
-        if passive == 'armored_spearhead' and u.category == 'vehicle':
-            ubonus['close_dice'] = ubonus.get('close_dice', 0) + 1
         if u.utype.after_attack_move:   # cavalry inherent hit-and-run
             ubonus['after_move'] = max(ubonus.get('after_move', 0), u.utype.after_attack_move)
         amb = leader_move_bonus(game, u)   # Han's aura grants +movement nearby
@@ -386,8 +401,9 @@ def execute_card(game, side, card, states):
 
     # execute attacks
     attackers = [(u, ub) for (u, ub, p) in plans if u.alive]
+    attacked = set()
     if smart:
-        _coordinated_attacks(game, side, attackers, hit_targets, states)
+        attacked = _coordinated_attacks(game, side, attackers, hit_targets, states)
     else:
         for u, ubonus in attackers:
             if not u.alive:
@@ -396,9 +412,19 @@ def execute_card(game, side, card, states):
             if target is None:
                 continue
             _do_attack(game, u, target, ubonus, hit_targets, states)
+            attacked.add(u.uid)
             hit_targets[target.uid] = hit_targets.get(target.uid, 0) + 1
             if ubonus.get('after_move') and u.alive:
                 _retreat_to_safety(game, u, ubonus['after_move'])
+
+    # Leia rally: an ordered command unit that did NOT attack returns 1 figure
+    from hoth_engine import LEADER_DEF
+    for u, ubonus, p in plans:
+        if (u.alive and u.leader and LEADER_DEF[u.leader].get('rally')
+                and u.uid not in attacked):
+            cap = u.utype.full + LEADER_DEF[u.leader].get('extra_fig', 0)
+            if u.figs < cap:
+                u.figs += 1
     return extra_draw
 
 
@@ -409,6 +435,7 @@ def _coordinated_attacks(game, side, attackers, hit_targets, states):
     concentrates fire to SECURE kills (medals) and finishes the wounded without
     wasting shots on overkill."""
     pending = list(attackers)
+    attacked = set()
     while pending:
         best = None  # (value, idx, target)
         for i, (u, ub) in enumerate(pending):
@@ -432,9 +459,11 @@ def _coordinated_attacks(game, side, attackers, hit_targets, states):
         _, idx, target = best
         u, ub = pending.pop(idx)
         _do_attack(game, u, target, ub, hit_targets, states)
+        attacked.add(u.uid)
         hit_targets[target.uid] = hit_targets.get(target.uid, 0) + 1
         if ub.get('after_move') and u.alive:
             _retreat_to_safety(game, u, ub['after_move'])
+    return attacked
 
 def est_attack_value_simple(e):
     return (MEDAL_W if e.utype.grants_medal else 0.5) + e.figs * 0.1
@@ -499,12 +528,12 @@ def _do_attack(game, attacker, target, bonus, hit_targets, states):
 
     lm = leader_attack_mods(game, attacker)   # on-board leader: escort bonus, aura, fear
     extra = (bonus.get('dice', 0) + focus_extra - cover_pen + lm['dice']
+             + scout_bonus(game, attacker, target, bonus)
              + escalation_dice(game, attacker.side, bonus))
     close_bonus = bonus.get('close_dice', 0) + lm['close_dice']
     twice = 2 if bonus.get('attack_twice') else 1
-    apass = states[attacker.side].get('passive')
-    reroll_all = bonus.get('reroll', False)              # one-shot card: reroll all misses
-    reroll_one = lm['reroll_one'] or apass == 'the_force'  # leader/passive: reroll one die
+    reroll_all = bonus.get('reroll', False)   # one-shot card: reroll all misses
+    reroll_one = lm['reroll_one']             # leader (Luke/Han): reroll a single die
     ignore_terr = bonus.get('ignore_terrain', False) or lm['ignore_terrain']
     rah = bonus.get('retreat_as_hit', False) or lm['retreat_as_hit']
     for _ in range(twice):
@@ -743,8 +772,22 @@ def make_unit(kind, side, pos, badge=None):
     ut = UNIT_TYPES[kind]
     return Unit(ut, side, pos, ut.full, badge=badge)
 
+def leader_available(game, side, name):
+    """A leader can be fielded only if its escort type is present in the scenario
+    (Piett is off-board, always available)."""
+    from hoth_engine import LEADER_DEF
+    if not name:
+        return False
+    ld = LEADER_DEF.get(name)
+    if not ld:
+        return False
+    if ld.get('offboard'):
+        return True
+    return any(u.kind == ld['escort'] for u in game.side_units(side))
+
 def attach_leaders(game, leaders):
-    """Place each side's leader figure with an eligible escort unit (Piett stays off-board)."""
+    """Place each side's leader figure with its escort unit. Leaders are LOCKED to their
+    escort type -- if the escort type isn't in the scenario the leader is not fielded."""
     from hoth_engine import LEADER_DEF
     for side, name in (leaders or {}).items():
         if not name:
@@ -753,9 +796,7 @@ def attach_leaders(game, leaders):
         if not ld or ld.get('offboard'):
             continue
         cand = [u for u in game.side_units(side) if u.kind == ld['escort'] and not u.leader]
-        if not cand:
-            cand = [u for u in game.side_units(side) if not u.leader]
-        if cand:
+        if cand:                      # escort present -> deploy; else leader can't be fielded
             cand[0].leader = name
             if ld.get('extra_fig'):
                 cand[0].figs += ld['extra_fig']
@@ -833,6 +874,12 @@ def play_game(rebel_leader=None, emp_leader=None, basic=False,
                   leader=leader,
                   passive=LEADER_PASSIVES.get(leader) if leader else None)
         return st
+    # leaders are LOCKED to their escort type: if the escort isn't in this scenario,
+    # the leader can't be chosen at all (no figure, no cards, no passive).
+    if not leader_available(game, 'rebel', rebel_leader):
+        rebel_leader = None
+    if not leader_available(game, 'empire', emp_leader):
+        emp_leader = None
     states = {'rebel': mkstate('rebel', rebel_leader),
               'empire': mkstate('empire', emp_leader)}
     # place leader figures on-board (Advanced Leader rules); off-board leaders skipped

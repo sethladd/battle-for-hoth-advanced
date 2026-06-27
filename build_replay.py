@@ -160,7 +160,7 @@ function ko(bd,c,r){const x=cx(c,r),y=cy(c,r);
 const TCOL={open:'#16334d',rocks:'#5b6b7b',ridge:'#6b8ea0',trenches:'#7a5a64',buildings:'#4a4a52',wreckage:'#6e4a33',crevasse:'#0a1a2a',serac:'#bfe6f5',structure:'#7a3a52'};
 const TLAB={rocks:'rk',ridge:'rg',trenches:'tr',buildings:'bd',wreckage:'wr',crevasse:'cv',serac:'sr',structure:'st'};
 const UCOL={rebel:'#c0392b',empire:'#274472'};
-const UK={echo:'T',speeder:'S',tauntaun:'Tn',artillery:'A',snowtroop:'T',atat:'W',atst:'St',droid:'D',eweb:'E'};
+const UK={echo:'T',speeder:'S',tauntaun:'Tn',artillery:'A',snowtroop:'T',atat:'W',atst:'St',droid:'D',eweb:'E',vader:'V',shieldgen:'SG',ioncannon:'IC'};
 let terr={}; R.terrain.forEach(t=>terr[t.col+','+t.row]=t.type);
 let i=0, timer=null;
 function draw(){
