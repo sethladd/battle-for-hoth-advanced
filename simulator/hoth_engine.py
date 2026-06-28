@@ -360,7 +360,9 @@ class Game:
                     continue
                 nsteps = steps + 1
                 stop_here = (terr in STOP_ON_ENTER) and not unit.utype.ignore_terrain_stop
-                can_attack = nsteps <= unit.utype.move_attack and terr not in NO_ATTACK_AFTER_ENTER
+                # FAQ v1.0: a card's movement bonus also extends the attack-after-move
+                # range by the same amount (e.g. +1 move lets infantry move 2 and attack).
+                can_attack = nsteps <= (unit.utype.move_attack + extra_move) and terr not in NO_ATTACK_AFTER_ENTER
                 prev = result.get(nb)
                 if prev is None or nsteps < prev[0]:
                     result[nb] = (nsteps, can_attack)
