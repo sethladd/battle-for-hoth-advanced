@@ -88,6 +88,9 @@ def rebel_tactics():
              bonus=dict(reinforce=1, no_move=False)),
         dict(name='Evasive Maneuvers',  count=1, ctype='reaction', reaction='evade'),
         dict(name='Ambush',             count=1, ctype='reaction', reaction='ambush'),
+        dict(name='Tauntaun Recon',     count=1, ctype='tactic',
+             order=dict(mode='anywhere', n=2, filter=None),
+             bonus=dict(move=1, draw=1)),
     ]
 
 # --------------------------------------------------------------------------
@@ -118,6 +121,9 @@ def imperial_tactics():
              bonus=dict(draw=2)),
         dict(name='Suppressing Fire',   count=1, ctype='reaction', reaction='cover'),
         dict(name='Imperial Ambush',    count=1, ctype='reaction', reaction='ambush'),
+        dict(name='Cold Assault',       count=1, ctype='tactic',
+             order=dict(mode='section', n=2, filter='infantry'),
+             bonus=dict(move=1, full_move_attack=True)),
     ]
 
 # --------------------------------------------------------------------------

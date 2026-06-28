@@ -1,6 +1,6 @@
 # Battle of Hoth — Advanced Deck Compendium
 
-An alternate command deck for expert play. Each side runs a **23-card base deck** (13 section + 10 tactic cards); adding a leader shuffles in that leader's 3 cards and applies a passive trait, for a **26-card deck**.
+An alternate command deck for expert play. Each side runs a **24-card base deck** (13 section + 11 tactic cards); adding a leader shuffles in that leader's 3 cards and applies a passive trait, for a **27-card deck**.
 
 **New mechanics:** *Reaction* cards are held and played on the opponent's turn when their trigger occurs. *Escalation* cards (Desperate Valor, Crush Them) scale with the game state. Unit-type cards use the rulebook fallback: if you command none of the listed unit type, instead order 1 unit of your choice with no bonus.
 
@@ -22,7 +22,7 @@ The ordering backbone, identical for both sides. The nine **Probe / Raid / Assau
 - **Coordinated Command** ×1 — Order up to 4 units anywhere on the battlefield.
 - **Grand Offensive** ×1 — Choose a flank. Order ALL of your units there; each ordered unit gains +1 movement this turn.
 
-## Rebel Alliance — Tactic cards (10 cards)
+## Rebel Alliance — Tactic cards (11 cards)
 
 *Theme: mobility, concentrated fire, resilience, and a comeback when behind.*
 
@@ -35,8 +35,9 @@ The ordering backbone, identical for both sides. The nine **Probe / Raid / Assau
 - **Regroup** ×1 — Order up to 2 units. Each ordered unit that does NOT attack returns 1 lost figure to full-strength cap.
 - **Evasive Maneuvers** ×1 *(reaction)* — REACTION (play on the enemy turn). When an enemy declares an attack on your Snowspeeder, it may first move 1 hex; recompute the attack.
 - **Ambush** ×1 *(reaction)* — REACTION. When an enemy unit ends its move adjacent to one of your units, that unit immediately makes a close-combat attack.
+- **Tauntaun Recon** ×1 — Order up to 2 units. Each gains +1 movement; then draw 1 command card.
 
-## Galactic Empire — Tactic cards (10 cards)
+## Galactic Empire — Tactic cards (11 cards)
 
 *Theme: armored aggression, suppression, and snowballing a winning position.*
 
@@ -49,6 +50,7 @@ The ordering backbone, identical for both sides. The nine **Probe / Raid / Assau
 - **Forward Command** ×1 — Order 1 unit. Then draw 2 extra command cards.
 - **Suppressing Fire** ×1 *(reaction)* — REACTION. When an enemy attacks one of your infantry units in cover, the attacker rolls 1 fewer die.
 - **Imperial Ambush** ×1 *(reaction)* — REACTION. When an enemy unit ends its move adjacent to one of your units, that unit immediately makes a close-combat attack.
+- **Cold Assault** ×1 — Choose a section. Order up to 2 snowtrooper units there. Each gains +1 movement and may move its full distance and still attack. *Fallback: if you command no infantry units, instead order 1 unit of your choice (no bonus).*
 
 ## Leader cards & passive traits
 
