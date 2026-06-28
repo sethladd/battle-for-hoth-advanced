@@ -64,7 +64,7 @@ def build_templates():
     global _TEMPLATES
     if _TEMPLATES is not None:
         return _TEMPLATES
-    truth = json.load(open('../data/hoth_scenario_positions.json'))
+    truth = json.load(open('hoth_scenario_positions.json'))
     _TEMPLATES = {}
     for k in ['1', '2', '3', '4']:
         img = board_rgb(int(k))
@@ -87,7 +87,7 @@ def classify_type(img, x, y, side):
     return best or ('echo' if side == 'rebel' else 'snowtroop')
 
 if __name__ == '__main__':
-    truth = json.load(open('../data/hoth_scenario_positions.json'))
+    truth = json.load(open('hoth_scenario_positions.json'))
     for k in ['1', '2', '3', '4']:
         u, t = detect(int(k))
         du = {(x['col'], x['row'], x['side']) for x in u}

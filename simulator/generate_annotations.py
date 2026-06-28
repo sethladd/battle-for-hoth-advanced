@@ -4,7 +4,7 @@ import json, importlib, detect_maps
 importlib.reload(detect_maps)
 import detect_maps as D
 
-truth = json.load(open('../data/hoth_scenario_positions.json'))
+truth = json.load(open('hoth_scenario_positions.json'))
 full = {'_note': 'Scenarios 1-4 hand-verified by user; 5-17 auto-detected '
                  '(unit positions/sides reliable; types via template match; '
                  'terrain crystal hexes marked as generic rocks, approximate).'}

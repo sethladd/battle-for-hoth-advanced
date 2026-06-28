@@ -8,15 +8,15 @@ An alternate command deck for expert play. Each side runs a **23-card base deck*
 
 The ordering backbone, identical for both sides. The nine **Probe / Raid / Assault** cards are *sector-locked* — the card names a sector (left, center, or right) and you may only act there, exactly like the basic game's Attack Left/Center/Right. If you have no units in that sector, the card is wasted. Only **Coordinated Command** and **Grand Offensive** let you pick where to act, and they are rare.
 
-- **Probe Left** ×1 — Order 1 unit in the **left** sector (locked to this sector — you cannot choose another).
-- **Probe Center** ×1 — Order 1 unit in the **center** sector (locked to this sector — you cannot choose another).
-- **Probe Right** ×1 — Order 1 unit in the **right** sector (locked to this sector — you cannot choose another).
-- **Raid Left** ×1 — Order 2 units in the **left** sector (locked to this sector — you cannot choose another).
-- **Raid Center** ×1 — Order 2 units in the **center** sector (locked to this sector — you cannot choose another).
-- **Raid Right** ×1 — Order 2 units in the **right** sector (locked to this sector — you cannot choose another).
-- **Assault Left** ×1 — Order 3 units in the **left** sector (locked to this sector — you cannot choose another).
-- **Assault Center** ×1 — Order 3 units in the **center** sector (locked to this sector — you cannot choose another).
-- **Assault Right** ×1 — Order 3 units in the **right** sector (locked to this sector — you cannot choose another).
+- **Probe Left** ×1 — Order 1 unit in the **left** sector.
+- **Probe Center** ×1 — Order 1 unit in the **center** sector.
+- **Probe Right** ×1 — Order 1 unit in the **right** sector.
+- **Raid Left** ×1 — Order 2 units in the **left** sector.
+- **Raid Center** ×1 — Order 2 units in the **center** sector.
+- **Raid Right** ×1 — Order 2 units in the **right** sector.
+- **Assault Left** ×1 — Order 3 units in the **left** sector.
+- **Assault Center** ×1 — Order 3 units in the **center** sector.
+- **Assault Right** ×1 — Order 3 units in the **right** sector.
 - **Recon in Force** ×1 — Order 1 unit in EACH section (left, center, and right).
 - **Pincer Movement** ×1 — Order 2 units in EACH flank (left and right; the center is skipped).
 - **Coordinated Command** ×1 — Order up to 4 units anywhere on the battlefield.
@@ -26,9 +26,9 @@ The ordering backbone, identical for both sides. The nine **Probe / Raid / Assau
 
 *Theme: mobility, concentrated fire, resilience, and a comeback when behind.*
 
-- **Speeder Strike** ×2 — Order up to 2 Snowspeeder units. After it attacks, each may move 1 hex (hit-and-run).
-- **Trench Fighting** ×1 — Choose a section. Order up to 3 infantry units there. They roll +1 attack die and ignore terrain attack penalties this turn.
-- **Artillery Barrage** ×1 — Order 1 Rebel Artillery unit. It attacks twice this turn.
+- **Speeder Strike** ×2 — Order up to 2 Snowspeeder units. After it attacks, each may move 1 hex (hit-and-run). *Fallback: if you command no vehicle units, instead order 1 unit of your choice (no bonus).*
+- **Trench Fighting** ×1 — Choose a section. Order up to 3 infantry units there. They roll +1 attack die and ignore terrain attack penalties this turn. *Fallback: if you command no infantry units, instead order 1 unit of your choice (no bonus).*
+- **Artillery Barrage** ×1 — Order 1 Rebel Artillery unit. It attacks twice this turn. *Fallback: if you command no special units, instead order 1 unit of your choice (no bonus).*
 - **Focus Fire** ×1 — Choose a section. Order up to 3 units there. For each unit after the first that attacks the SAME target, that attack rolls +1 die.
 - **Desperate Valor** ×1 — Order up to 2 units. Each rolls +1 attack die for every victory medal the enemy has scored (max +3).
 - **Forward Command** ×1 — Order 1 unit. Then draw 2 extra command cards.
@@ -40,11 +40,11 @@ The ordering backbone, identical for both sides. The nine **Probe / Raid / Assau
 
 *Theme: armored aggression, suppression, and snowballing a winning position.*
 
-- **Armored Advance** ×2 — Order up to 2 AT-AT units. Each gains +1 movement and +1 die in close combat.
-- **Trooper Assault** ×1 — Choose a section. Order up to 3 snowtrooper units there. Each rolls +1 attack die.
+- **Armored Advance** ×2 — Order up to 2 AT-AT units. Each gains +1 movement and +1 die in close combat. *Fallback: if you command no vehicle units, instead order 1 unit of your choice (no bonus).*
+- **Trooper Assault** ×1 — Choose a section. Order up to 3 snowtrooper units there. Each rolls +1 attack die. *Fallback: if you command no infantry units, instead order 1 unit of your choice (no bonus).*
 - **Concentrated Fire** ×1 — Choose a section. Order up to 3 units there. The 2nd unit to attack a given target rolls +1 die; the 3rd rolls +2 dice.
 - **Hold the Line** ×1 — Order up to 2 units anywhere. They may not move, but each rolls +1 die in close combat (defensive firing line).
-- **Probe Recon** ×1 — Order up to 2 Probe Droid units. Each gains +1 movement; your units roll +1 die against any enemy a droid can see.
+- **Probe Recon** ×1 — Order up to 2 Probe Droid units. Each gains +1 movement; your units roll +1 die against any enemy a droid can see. *Fallback: if you command no special units, instead order 1 unit of your choice (no bonus).*
 - **Crush Them** ×1 — Order up to 2 units anywhere. Each rolls +1 die for every enemy unit currently below half strength (max +3).
 - **Forward Command** ×1 — Order 1 unit. Then draw 2 extra command cards.
 - **Suppressing Fire** ×1 *(reaction)* — REACTION. When an enemy attacks one of your infantry units in cover, the attacker rolls 1 fewer die.
@@ -90,8 +90,8 @@ Each player may choose one leader; shuffle in its 3 cards and apply its passive 
 
 *Passive — Armored Spearhead — your vehicle units roll +1 die in close combat.*
 
-- **Concentrate All Fire** — Order 1 AT-AT unit. It attacks twice this turn.
-- **Maximum Firepower** — Order up to 2 vehicle units. Each rolls +1 die and gains +1 movement.
+- **Concentrate All Fire** — Order 1 AT-AT unit. It attacks twice this turn. *Fallback: if you command no vehicle units, instead order 1 unit of your choice (no bonus).*
+- **Maximum Firepower** — Order up to 2 vehicle units. Each rolls +1 die and gains +1 movement. *Fallback: if you command no vehicle units, instead order 1 unit of your choice (no bonus).*
 - **Break Their Lines** — Order up to 3 units. After attacking, each may move 1 hex (breakthrough).
 
 ### Admiral Piett (Empire)

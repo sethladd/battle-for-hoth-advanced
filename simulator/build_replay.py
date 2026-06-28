@@ -17,55 +17,27 @@ scn = HS.SCENARIOS[SCN]
 res = S.play_game(seed=SEED, basic=False, scenario=scn, annot=annot,
                   rebel_leader=RLEAD, emp_leader=ELEAD, record=True)
 
+# Advanced card text comes from the single canonical source
+# (docs/Advanced_Deck_Compendium.md). See CLAUDE.md "golden rule".
+import card_text
+import hoth_cards as HC
+
+# A few entries that are NOT part of the advanced variant's canonical compendium:
+# the three original basic-deck section cards (shown only in basic-mode replays) and the
+# synthetic "Initial deployment" frame label.
 CARD_TEXT = {
- # section cards (shared)
  'Recon Probe': 'Order 2 units in one section.',
  'Sector Assault': 'Order 3 units in one section.',
  'General Advance': 'Order ALL units in one section.',
- 'Recon in Force': 'Order 1 unit in each section (left, center, right).',
- 'Pincer Movement': 'Order 2 units in each flank (left and right).',
- 'Coordinated Command': 'Order up to 4 units anywhere on the board.',
- 'Grand Offensive': 'Order ALL units in one flank; they gain +1 movement.',
- # rebel tactics
- 'Speeder Strike': 'Order up to 2 Snowspeeders; each may move 1 hex AFTER attacking (hit-and-run).',
- 'Trench Fighting': 'Order up to 3 infantry; +1 attack die and ignore terrain attack penalties.',
- 'Artillery Barrage': 'Order 1 artillery unit; it attacks twice.',
- 'Focus Fire': 'Order up to 3 units; +1 die for each unit after the first to attack the SAME target.',
- 'Desperate Valor': 'Order up to 2 units; +1 die for each medal the enemy has scored (max +3).',
- 'Forward Command': 'Order 1 unit; draw 2 extra command cards.',
- 'Regroup': 'Order up to 2 units; each ordered unit that does not attack returns 1 lost figure.',
- 'Evasive Maneuvers': 'REACTION — when an enemy attacks your Snowspeeder, it first moves 1 hex (dodge).',
- 'Ambush': 'REACTION — when an enemy ends its move adjacent to your unit, that unit attacks at once.',
- # imperial tactics
- 'Armored Advance': 'Order up to 2 AT-AT units; +1 movement and +1 close-combat die.',
- 'Trooper Assault': 'Order up to 3 infantry; +1 attack die.',
- 'Concentrated Fire': 'Order up to 3 units; 2nd to hit the same target +1 die, 3rd +2 dice.',
- 'Hold the Line': 'Order up to 3 units; they may not move but gain +1 close-combat die.',
- 'Probe Recon': 'Order up to 2 probe droids; +1 movement; allies +1 die vs targets a droid can see.',
- 'Crush Them': 'Order up to 3 units; +1 die for each enemy unit below half strength (max +3).',
- 'Suppressing Fire': 'REACTION — when an enemy attacks your infantry in cover, attacker rolls 1 fewer die.',
- 'Imperial Ambush': 'REACTION — when an enemy ends its move adjacent to your unit, that unit attacks at once.',
- # leaders
- 'Coordinated Defense': '[Leia] Order up to 3 units; non-attacking units return 1 figure.',
- 'New Hope': '[Leia] Order up to 4 units; +1 attack die.',
- 'Deploy the Fleet': '[Leia] Order 1 unit; draw 3 extra command cards.',
- 'Force Push': '[Luke] Order 1 unit; on its attack, retreats also count as hits.',
- 'Trust Your Feelings': '[Luke] Order up to 2 units; +1 die and reroll missed dice.',
- 'Heroic Resolve': '[Luke] Order 1 unit; it attacks twice.',
- 'Never Tell Me the Odds': '[Han] Order 2 units in different sections; +2 movement.',
- 'Surprise Attack': '[Han] Order 1 unit; it may move its full distance and still attack, +1 die.',
- 'Covering Fire': '[Han] Order up to 3 units; focus fire (+1 die per extra attacker on a target).',
- 'Force Choke': '[Vader] Order 1 unit; +1 die and retreats also count as hits.',
- 'Lack of Faith': '[Vader] Order up to 2 units; +1 die; the enemy may play no reactions this turn.',
- 'Power of the Dark Side': '[Vader] Order 1 unit; it attacks twice with +1 die.',
- 'Concentrate All Fire': '[Veers] Order 1 AT-AT; it attacks twice.',
- 'Maximum Firepower': '[Veers] Order up to 2 vehicles; +1 die and +1 movement.',
- 'Break Their Lines': '[Veers] Order up to 3 units; each may move 1 hex after attacking (breakthrough).',
- 'Orbital Bombardment': '[Piett] Roll 2 dice against each of up to 3 enemy units (ignores cover & LOS).',
- 'Tactical Redeployment': '[Piett] Order up to 4 units; +1 movement.',
- 'Special Orders': '[Piett] Order 1 unit; draw 2 extra command cards.',
  'Initial deployment': 'Starting positions from the scenario setup.',
 }
+_LEAD_OF = {c['name']: L for L in ['Luke', 'Han', 'Leia', 'Vader', 'Veers', 'Piett']
+            for c in HC.leader_cards(L)}
+for _name, _desc in card_text.parse().items():
+    _plain = card_text.to_plain(_desc)
+    if _name in _LEAD_OF:
+        _plain = '[%s] %s' % (_LEAD_OF[_name], _plain)
+    CARD_TEXT[_name] = _plain
 
 replay = dict(
     scenario=SCN, name=scn.name, first=scn.first,

@@ -4,6 +4,16 @@ A fan-made expert expansion and toolkit for *Star Wars: Battle of Hoth* (Days of
 It adds a deeper command deck, on-board leaders, two new units, and a full game simulator
 used to balance everything across all 17 booklet scenarios.
 
+## ▶ Start here
+
+**If you just want to play, read [`Battle_of_Hoth_Advanced_Rulebook.pdf`](docs/Battle_of_Hoth_Advanced_Rulebook.pdf).**
+It's a single, polished, print-ready document with everything a player needs: what's new,
+**how to adopt the variant**, the new units and leaders, the entire deck as **print-and-play
+59 × 91 mm cards** (just print and cut), and a quick reference. Most people need nothing else.
+
+Everything else in this repo — the markdown sources in `docs/`, the simulator, and the web
+tools — is for tinkering, balancing, and regenerating that PDF, and is entirely optional.
+
 ## What's here
 
 - **An Advanced command deck** (~24 cards/side) that keeps the basic game's sector-locked
@@ -18,7 +28,8 @@ used to balance everything across all 17 booklet scenarios.
 
 ## Quick start
 
-- **Read the rules:** open the files in [`docs/`](docs/).
+- **Play the variant:** read / print [`Battle_of_Hoth_Advanced_Rulebook.pdf`](docs/Battle_of_Hoth_Advanced_Rulebook.pdf) (see "Start here" above) — that's all most players need.
+- **Canonical rules sources** (what the PDF is generated from) live in [`docs/`](docs/).
   - [`Advanced_Deck_Compendium.md`](docs/Advanced_Deck_Compendium.md) — every card.
   - [`Advanced_Leaders.md`](docs/Advanced_Leaders.md) — the on-board leader system.
   - [`Advanced_Units.md`](docs/Advanced_Units.md) — the Tauntaun Scout and AT-ST.
@@ -74,7 +85,8 @@ Used to mark exact unit/terrain/objective positions on the real scenario maps.
 .
 ├── README.md                  ← you are here
 ├── LICENSE
-├── docs/                      ← rules & report (start here)
+├── docs/                      ← start here
+│   ├── Battle_of_Hoth_Advanced_Rulebook.pdf   ← the player-facing, print-ready rulebook
 │   ├── Advanced_Deck_Compendium.md
 │   ├── Advanced_Leaders.md
 │   ├── Advanced_Units.md
@@ -90,7 +102,8 @@ Used to mark exact unit/terrain/objective positions on the real scenario maps.
     ├── hoth_sim.py             AI, turn loop, card execution, game runner
     ├── hoth_cards.py           the Advanced (and Basic) command decks
     ├── hoth_scenarios.py       all 17 scenarios + special-rule loader
-    ├── build_compendium.py     regenerates docs/Advanced_Deck_Compendium.md
+    ├── card_text.py            parses canonical card text from the compendium markdown
+    ├── build_compendium.py     validates docs/Advanced_Deck_Compendium.md vs the card defs
     ├── build_replay.py         regenerates tools/hoth_game_replay.html
     ├── build_annotator.py      regenerates tools/hoth_map_annotator.html
     ├── detect_maps.py          auto-detects unit/terrain positions from the maps
@@ -112,8 +125,8 @@ python3 hoth_sim.py 200
 python3 build_replay.py 1 7 Leia Vader     # scenario 1, seed 7, Leia vs Vader
 #   then open ../tools/hoth_game_replay.html
 
-# regenerate the card compendium and the annotator
-python3 build_compendium.py
+# check the card compendium is in sync with the definitions, and regenerate the annotator
+python3 build_compendium.py     # validates docs/Advanced_Deck_Compendium.md (no output file)
 python3 build_annotator.py
 ```
 
